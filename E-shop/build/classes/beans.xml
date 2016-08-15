@@ -13,5 +13,71 @@
         http://www.springframework.org/schema/tx
         http://www.springframework.org/schema/tx/spring-tx.xsd">	
      <!-- 测试springIoc -->   
-	<bean id="date" class="java.util.Date"/>		
+	<bean id="date" class="java.util.Date"/>
+	
+	<!-- 配置一下dataSource，然后hibernate.cfg.xml中相应的部分可以干掉了。因为在Spring中配置好了，Spring会去初始化这个dataSource，
+		也就是说这就交给Spring来完成了，hibernate.cfg.xml中的相应部分可以删掉了。 -->	
+		<!-- com.mchange.v2.c3p0.ComboPooledDataSource类在c3p0-0.9.5.1.jar包的com.mchange.v2.c3p0包中 -->  
+	<bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">  
+	    <property name="driverClass" value="com.mysql.jdbc.Driver" />  
+	    <property name="jdbcUrl" value="jdbc:mysql://localhost:3306/shop" />  
+	    <property name="user" value="root" />  
+	    <property name="password" value="root" />  
+	</bean>	
+	
+	<!--配置sessionFactory是用来产生一个session的，另外HibernateTemplate也可以，但是这里采用sessionFactory而不用HibernateTemplate，
+                       是因为HibernateTemplate是Spring提供的，依赖于Spring，如果哪天不用Spring了，就会报错。而sessionFactory是Hibernate提供的，没有问题。
+   		HibernateTemplate的依赖性太强了。下面看一下具体配置： -->	
+	<!-- org.springframework.orm.hibernate4.LocalSessionFactoryBean类在spring-orm-4.2.4.RELEASE.jar包的org.springframework.orm.hibernate4包中 -->  
+	<bean id="sessionFactory" class="org.springframework.orm.hibernate4.LocalSessionFactoryBean">  
+	     <property name="dataSource" ref="dataSource" />  
+	     <property name="configLocation" value="classpath:hibernate.cfg.xml" /> <!-- 加载hibernate配置文件 -->  
+	</bean> 	
+	
+	<!--  配置事务管理器，是用来管理sessionFactory的，这样所有的由sessionFactory产生的session将会有声明式的管理。配置如下 -->	
+	<!-- org.springframework.orm.hibernate4.HibernateTransactionManager类spring-orm-4.2.4.RELEASE.jar包的org.springframework.orm.hibernate4包中 -->  
+	<bean id="transactionManager" class="org.springframework.orm.hibernate4.HibernateTransactionManager">  
+	     <property name="sessionFactory" ref="sessionFactory" />  
+	</bean> 	
+	
+	<!-- 配置advice的目的是指定哪些方法需要什么类型的事务模式。 -->
+	<tx:advice id="advice" transaction-manager="transactionManager">  
+	    <tx:attributes>  
+	        <tx:method name="save*" propagation="REQUIRED"/>  
+	        <tx:method name="update*" propagation="REQUIRED"/>  
+	        <tx:method name="delete*" propagation="REQUIRED"/>  
+	        <tx:method name="*" propagation="SUPPORTS"/>  
+	    </tx:attributes>  
+	</tx:advice> 
+		
+	<!--配置AOP切面：AOP即面向切面编程，aop:pointcut定义一个切面，expression属性中配置的意思是所有cn.it.shop.service.impl包下的所有方法，不管返回值和参数是什么，都要切入事务。
+	        该包是属于dao层的，直接操作数据库的。aop:advice将通知和切面结合起来，我们直接使用上面配置好的advice和pointcut，将其引入进来即可。这样配置好了后，意思就是说，
+	        凡是cn.it.shop.service.impl包下的方法都需要切入事务管理，具体地，以save、update、delete开头的方法使用REQUIED方式，其他方法使用SUPPORTS方式。
+	        这样就很好理解这个配置的意思了 -->
+	<aop:config>  
+	    <!-- 配置哪些包的类要切入事务 -->  
+	    <aop:pointcut id="pointcut" expression="execution(* cn.it.shop.service.impl.*.*(..))" />  
+	    <aop:advisor advice-ref="advice" pointcut-ref="pointcut"/><!-- 连接了<span style="font-family:Microsoft YaHei;">上</span>面的advice和上面的pointcut -->  
+	    <!-- aop:pointcut要写在aop:advisor上面，否则会报错 -->  
+	 </aop:config>	
+	
+	<!-- 测试spring与hibernate整合结果，之前搭建Hibernate环境的时候，我们测试是直接new了一个Service来操作数据库，因为当时还没有和Spring整合。现在通过配置beans.xml后，
+	让Spring去管理Hibernate的事务了，所以现在的测试要把Service交给Spring管理，通过Spring注入进来，并且依赖sessionFactory，如果能插入数据到数据库，则说明声明事务OK。
+	 首先，我们要在Spring的配置文件beans.xml中配一下这个Service： -->
+	<bean id="categoryService" class="cn.it.shop.service.impl.CategoryServiceImpl">  
+	    <property name="sessionFactory" ref="sessionFactory" /><!-- 依赖的sessionFactory用我们之前配好的sessionFactory-->  
+	</bean>	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+			
 </beans>
