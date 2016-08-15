@@ -6,9 +6,9 @@
     <title>My JSP 'index.jsp' starting page</title>  
   </head>  
     
-  <body>   
-    <!-- 下面两种写法都可以访问 --></span>  
-    <a href="${pageContext.request.contextPath }/category_update.action">访问update</a>  
+  <body>  
+  	<!-- 这里测试的id与数据库保持一致 -->
+    <a href="${pageContext.request.contextPath }/category_update.action?category.id=6&category.type=gga&category.hot=false">访问update</a>  
     <a href="category_save.action">访问save</a>  
   </body>  
 </html>  

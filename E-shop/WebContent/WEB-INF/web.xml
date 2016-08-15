@@ -14,5 +14,15 @@
     <filter-name>struts2</filter-name>  
     <url-pattern>*.action</url-pattern>  
   </filter-mapping>  
+  
+ <!-- 在web.xml中配置监听器ContextLoaderListener，这样在服务器启动的时候就可以加载Spring的配置文件了
+ 	  web.xml中监听器的启动优先级要高于过滤器，所以配在下面无所谓的 -->  
+  <listener>  
+    <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>  
+  </listener>  
     
+  <context-param>  
+    <param-name>contextConfigLocation</param-name>  
+    <param-value>classpath:beans.xml</param-value>  
+  </context-param>      
 </web-app>  

@@ -68,8 +68,10 @@
 	    <property name="sessionFactory" ref="sessionFactory" /><!-- 依赖的sessionFactory用我们之前配好的sessionFactory-->  
 	</bean>	
 	
-	
-	
+	<!--  Spring和Struts2整合:把Action和它的依赖交给Spring管理 -->	
+	<bean id="categoryAction" class="cn.it.shop.action.CategoryAction" scope="prototype">  
+	    <property name="categoryService" ref="categoryService" /> <!-- 依赖的categoryService用上面和Hibernate整合时配置好的categoryService -->  
+	</bean> 
 	
 	
 	
